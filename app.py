@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import json, re
+import json
+import re
 from pathlib import Path
 from datetime import datetime
 
@@ -9,6 +10,7 @@ st.set_page_config(page_title="Video Test Árbitros", page_icon="⚽", layout="w
 PREGUNTAS_FILE = Path("preguntas.json")
 RESULTADOS_DIR = Path("resultados")
 RESULTADOS_DIR.mkdir(exist_ok=True)
+
 RESUMEN_CSV = RESULTADOS_DIR / "resultados_resumen.csv"
 DETALLE_CSV = RESULTADOS_DIR / "resultados_detalle.csv"
 EXCEL_FILE = RESULTADOS_DIR / "resultados_videotest.xlsx"
@@ -49,10 +51,14 @@ def faltan_respuestas(data):
 
 
 def nivel(porc):
-    if porc >= 90: return "Excelente"
-    if porc >= 80: return "Muy bueno"
-    if porc >= 70: return "Bueno"
-    if porc >= 60: return "Regular"
+    if porc >= 90:
+        return "Excelente"
+    if porc >= 80:
+        return "Muy bueno"
+    if porc >= 70:
+        return "Bueno"
+    if porc >= 60:
+        return "Regular"
     return "Debe reforzar"
 
 
@@ -92,10 +98,12 @@ def corregir(data, respuestas):
             ("Decisión técnica", respuestas[f'{v["id"]}_decision'], v["decision_correcta"], 2),
             ("Sanción disciplinaria", respuestas[f'{v["id"]}_sancion'], v["sancion_correcta"], 2),
         ]
+
         for pregunta, resp, correcta, pts in pares:
             ok = resp == correcta
             total += pts
             puntos += pts if ok else 0
+
             detalle.append({
                 "tema": v.get("tema", ""),
                 "subtema": v.get("subtema", ""),
@@ -116,6 +124,7 @@ def corregir(data, respuestas):
 
 def guardar_resultado(participante, puntos, total, porc, niv, detalle):
     fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     fila = {
         "fecha": fecha,
         **participante,
@@ -127,6 +136,7 @@ def guardar_resultado(participante, puntos, total, porc, niv, detalle):
 
     resumen_nuevo = pd.DataFrame([fila])
     detalle_nuevo = pd.DataFrame(detalle)
+
     for k, v in fila.items():
         detalle_nuevo.insert(0, k, v)
 
@@ -140,16 +150,20 @@ def guardar_resultado(participante, puntos, total, porc, niv, detalle):
 
 def admin():
     st.header("Panel administrador")
+
     pwd = st.text_input("Clave administrador", type="password")
+
     if pwd != clave_admin():
         st.info("Clave local inicial: admin123")
         return
 
     data = cargar()
+
     st.success("Acceso administrador correcto")
     st.info("Las respuestas correctas no salen de los videos automáticamente. Cargalas acá antes de tomar el test.")
 
     df = pd.DataFrame(data["videos"])
+
     df_edit = st.data_editor(
         df,
         use_container_width=True,
@@ -157,8 +171,14 @@ def admin():
         num_rows="fixed",
         disabled=["id", "archivo"],
         column_config={
-            "decision_correcta": st.column_config.SelectboxColumn("decision_correcta", options=[""] + DECISIONES),
-            "sancion_correcta": st.column_config.SelectboxColumn("sancion_correcta", options=[""] + SANCIONES),
+            "decision_correcta": st.column_config.SelectboxColumn(
+                "decision_correcta",
+                options=[""] + DECISIONES
+            ),
+            "sancion_correcta": st.column_config.SelectboxColumn(
+                "sancion_correcta",
+                options=[""] + SANCIONES
+            ),
         },
     )
 
@@ -169,6 +189,7 @@ def admin():
         st.rerun()
 
     faltan = faltan_respuestas(data)
+
     if faltan:
         st.warning("Faltan respuestas correctas:")
         for x in faltan:
@@ -177,6 +198,7 @@ def admin():
         st.success("Banco completo. El test puede tomarse.")
 
     st.divider()
+
     if RESUMEN_CSV.exists():
         st.subheader("Resultados generales")
         st.dataframe(pd.read_csv(RESUMEN_CSV), use_container_width=True)
@@ -186,11 +208,26 @@ def admin():
             st.dataframe(pd.read_csv(DETALLE_CSV), use_container_width=True)
 
         c1, c2, c3 = st.columns(3)
-        c1.download_button("Descargar resumen CSV", RESUMEN_CSV.read_bytes(), "resultados_resumen.csv")
+
+        c1.download_button(
+            "Descargar resumen CSV",
+            RESUMEN_CSV.read_bytes(),
+            "resultados_resumen.csv"
+        )
+
         if DETALLE_CSV.exists():
-            c2.download_button("Descargar detalle CSV", DETALLE_CSV.read_bytes(), "resultados_detalle.csv")
+            c2.download_button(
+                "Descargar detalle CSV",
+                DETALLE_CSV.read_bytes(),
+                "resultados_detalle.csv"
+            )
+
         if EXCEL_FILE.exists():
-            c3.download_button("Descargar Excel", EXCEL_FILE.read_bytes(), "resultados_videotest.xlsx")
+            c3.download_button(
+                "Descargar Excel",
+                EXCEL_FILE.read_bytes(),
+                "resultados_videotest.xlsx"
+            )
     else:
         st.warning("Todavía no hay resultados guardados.")
 
@@ -198,6 +235,7 @@ def admin():
 def test():
     data = cargar()
     faltan = faltan_respuestas(data)
+
     if faltan:
         st.error("El test no está habilitado. El administrador debe cargar las respuestas correctas reales.")
         with st.expander("Ver faltantes"):
@@ -206,10 +244,14 @@ def test():
         return
 
     st.header("Ingreso del participante")
-    with st.form("participante"):
+
+    with st.form("form_participante"):
         nombre = st.text_input("Nombre y apellido *")
         email = st.text_input("Correo electrónico *")
-        categoria = st.selectbox("Categoría / rol", ["Árbitro", "Árbitro asistente", "Cuarto árbitro", "Instructor", "Otro"])
+        categoria = st.selectbox(
+            "Categoría / rol",
+            ["Árbitro", "Árbitro asistente", "Cuarto árbitro", "Instructor", "Otro"]
+        )
         institucion = st.text_input("Institución / departamento")
         aceptar = st.checkbox("Confirmo que realizaré el test de forma individual.")
         ok = st.form_submit_button("Comenzar test")
@@ -218,39 +260,56 @@ def test():
         if not nombre.strip():
             st.error("Debe ingresar nombre y apellido.")
             st.stop()
+
         if not email_valido(email):
             st.error("Debe ingresar un correo válido.")
             st.stop()
+
         if not aceptar:
             st.error("Debe confirmar que realizará el test de forma individual.")
             st.stop()
 
-        st.session_state.participante = {
+        st.session_state["datos_participante"] = {
             "nombre": nombre.strip(),
             "email": email.strip(),
             "categoria": categoria,
             "institucion": institucion.strip(),
         }
-        st.session_state.habilitado = True
+        st.session_state["test_habilitado"] = True
+        st.rerun()
 
-    if not st.session_state.get("habilitado", False):
+    if not st.session_state.get("test_habilitado", False):
         st.info("Completá tus datos y presioná Comenzar test.")
         return
 
     respuestas = {}
     st.header("Video test")
 
-    with st.form("test"):
+    with st.form("form_test"):
         for i, v in enumerate(data["videos"], start=1):
             st.subheader(f"Video {i}: {v['titulo']}")
+
             ruta = Path(v["archivo"])
+
             if ruta.exists():
                 st.video(str(ruta))
             else:
                 st.warning(f"No encontré el video: {v['archivo']}")
 
-            respuestas[f'{v["id"]}_decision'] = st.radio("1. Decisión técnica", DECISIONES, key=f'{v["id"]}_d', index=None) or ""
-            respuestas[f'{v["id"]}_sancion'] = st.radio("2. Sanción disciplinaria", SANCIONES, key=f'{v["id"]}_s', index=None) or ""
+            respuestas[f'{v["id"]}_decision'] = st.radio(
+                "1. Decisión técnica",
+                DECISIONES,
+                key=f'{v["id"]}_d',
+                index=None
+            ) or ""
+
+            respuestas[f'{v["id"]}_sancion'] = st.radio(
+                "2. Sanción disciplinaria",
+                SANCIONES,
+                key=f'{v["id"]}_s',
+                index=None
+            ) or ""
+
             st.divider()
 
         enviar = st.form_submit_button("Enviar respuestas y ver calificación")
@@ -261,27 +320,36 @@ def test():
             st.stop()
 
         puntos, total, porc, niv, detalle = corregir(data, respuestas)
-        guardar_resultado(st.session_state.participante, puntos, total, porc, niv, detalle)
+        guardar_resultado(st.session_state["datos_participante"], puntos, total, porc, niv, detalle)
 
         st.success("Test enviado correctamente")
+
         c1, c2, c3 = st.columns(3)
         c1.metric("Puntaje", f"{puntos} / {total}")
         c2.metric("Porcentaje", f"{porc}%")
         c3.metric("Calificación", niv)
 
         df_det = pd.DataFrame(detalle)
+
         resumen = df_det.groupby("tema", as_index=False).agg(
             puntos_obtenidos=("obtenido", "sum"),
             puntos_totales=("puntos", "sum")
         )
         resumen["porcentaje"] = (resumen["puntos_obtenidos"] / resumen["puntos_totales"] * 100).round(2)
         resumen["nivel"] = resumen["porcentaje"].apply(nivel)
+
         st.subheader("Resumen por tema")
         st.dataframe(resumen, use_container_width=True)
+
         st.info("Las respuestas correctas quedan solo para el administrador.")
 
 
 st.title("⚽ Video Test Árbitros")
-st.caption("Versión V8: configurable por administrador, sin respuestas inventadas.")
+st.caption("Versión corregida: formulario de participante sin conflicto de session_state.")
+
 menu = st.sidebar.radio("Menú", ["Realizar test", "Administrador"])
-admin() if menu == "Administrador" else test()
+
+if menu == "Administrador":
+    admin()
+else:
+    test()
