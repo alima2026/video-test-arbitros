@@ -1,0 +1,125 @@
+{
+  "videos": [
+    {
+      "id": "v1",
+      "titulo": "Jugada 1",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_1.mp4",
+      "decision_correcta": "Tiro libre directo",
+      "sancion_correcta": "Amonestación",
+      "criterio_admin": "",
+      "explicacion_admin": "El jugador de amarillo intenta jugar el donde lo logra rozar, pero impacta en una zona blanda de un rival donde el contacto no pleno "
+    },
+    {
+      "id": "v2",
+      "titulo": "Jugada 2",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_2.mp4",
+      "decision_correcta": "Tiro libre directo",
+      "sancion_correcta": "Expulsión",
+      "criterio_admin": "",
+      "explicacion_admin": "El jugador de azul no muestra una accion de jugar el balon y el resultado le pega al rival de blanco en una zona blanda de forma de contacto pleno"
+    },
+    {
+      "id": "v3",
+      "titulo": "Jugada 3",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_3.mp4",
+      "decision_correcta": "Tiro libre directo",
+      "sancion_correcta": "Expulsión",
+      "criterio_admin": "",
+      "explicacion_admin": "El jugador de negro no muestra una accion de jugar el balon. Su accion es de pegar al rival de blanco y rojo en una zona blanda de forma de contacto pleno y con gravedad de lesion."
+    },
+    {
+      "id": "v4",
+      "titulo": "Jugada 4",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_4.mp4",
+      "decision_correcta": "Tiro libre directo",
+      "sancion_correcta": "No tarjeta",
+      "criterio_admin": "",
+      "explicacion_admin": "El jugador de amarillo se lanza en velocidad tomando un riesgo pero con su accion golpe al rival en el zapato con su pierna recogida"
+    },
+    {
+      "id": "v5",
+      "titulo": "Jugada 5",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_5.mp4",
+      "decision_correcta": "Tiro libre directo",
+      "sancion_correcta": "Amonestación",
+      "criterio_admin": "",
+      "explicacion_admin": "El jugador de naranja va a golpear a generar un corte en un ataque prometedor del jugador de blanco y negro."
+    },
+    {
+      "id": "v6",
+      "titulo": "Jugada 6",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_6.mp4",
+      "decision_correcta": "Tiro libre directo",
+      "sancion_correcta": "Expulsión",
+      "criterio_admin": "",
+      "explicacion_admin": "El jugador de azul sujeta al rival para evitar un posibilidad manifiesta de gol DOGSO"
+    },
+    {
+      "id": "v7",
+      "titulo": "Jugada 7",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_7.mp4",
+      "decision_correcta": "Penal",
+      "sancion_correcta": "Amonestación",
+      "criterio_admin": "",
+      "explicacion_admin": "El golero quiere jugar el balon y al ver que le errar y lo agarra el rival lo sujeta del cordon del short."
+    },
+    {
+      "id": "v8",
+      "titulo": "Jugada 8",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_8.mp4",
+      "decision_correcta": "No falta",
+      "sancion_correcta": "No tarjeta",
+      "criterio_admin": "",
+      "explicacion_admin": "El jugador de negro se lanza a marcar en su area en accion de marca, pero el rival levanta un centro donde primero le impacta en la espalda y luega le golpe en su mano que esta en una posicion antinatural. Mano no sancionable"
+    },
+    {
+      "id": "v9",
+      "titulo": "Jugada 9",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_9.mp4",
+      "decision_correcta": "No falta",
+      "sancion_correcta": "No tarjeta",
+      "criterio_admin": "",
+      "explicacion_admin": "El jugador de rojo se lanza a marcar el jugador de amarillo  donde le puntea el balon. No penal"
+    },
+    {
+      "id": "v10",
+      "titulo": "Jugada 10",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_10.mp4",
+      "decision_correcta": "Penal",
+      "sancion_correcta": "Amonestación",
+      "criterio_admin": "",
+      "explicacion_admin": "El jugador de blanco cuando va hacer la accion de marca le aplica un plancha al rival poniendo en riesgo el fisico del rival y por la fuerza aplicada seria una falta temeraria dentro del area penal."
+    },
+    {
+      "id": "v11",
+      "titulo": "Jugada 11",
+      "tema": "Video Test 1",
+      "subtema": "Video Test Faltas - Manos",
+      "archivo": "videos/video_11.mp4",
+      "decision_correcta": "No falta",
+      "sancion_correcta": "No tarjeta",
+      "criterio_admin": "",
+      "explicacion_admin": "Se genera una mano tras mas de una serie de rebotes donde el balon busca la mano. Mano no sancionable"
+    }
+  ]
+}
