@@ -232,6 +232,129 @@ def videos_a_reforzar(detalle):
     return pd.DataFrame(filas)
 
 
+
+
+def analisis_individual_arbitro(detalle):
+    df = pd.DataFrame(detalle)
+    if df.empty:
+        return {
+            "fortalezas": [],
+            "a_reforzar": [],
+            "videos_criticos": [],
+            "errores_decision": 0,
+            "errores_sancion": 0,
+            "total_decision": 0,
+            "total_sancion": 0,
+            "acierto_decision": 0,
+            "acierto_sancion": 0,
+        }
+
+    df["ok"] = df["correcta"].astype(str).str.lower().isin(["sí", "si", "true", "1"])
+
+    decision = df[df["pregunta"].astype(str).str.contains("Decisión", case=False, na=False)]
+    sancion = df[df["pregunta"].astype(str).str.contains("Sanción", case=False, na=False)]
+
+    errores_decision = int((~decision["ok"]).sum()) if not decision.empty else 0
+    errores_sancion = int((~sancion["ok"]).sum()) if not sancion.empty else 0
+    total_decision = int(len(decision))
+    total_sancion = int(len(sancion))
+
+    acierto_decision = round((decision["ok"].sum() / len(decision)) * 100, 2) if len(decision) else 0
+    acierto_sancion = round((sancion["ok"].sum() / len(sancion)) * 100, 2) if len(sancion) else 0
+
+    por_tema = df.groupby("tema", as_index=False).agg(
+        respuestas=("ok", "count"),
+        aciertos=("ok", "sum"),
+        errores=("ok", lambda s: (~s).sum())
+    )
+    por_tema["porcentaje_acierto"] = (por_tema["aciertos"] / por_tema["respuestas"] * 100).round(2)
+
+    fortalezas = por_tema[por_tema["porcentaje_acierto"] >= 80].sort_values("porcentaje_acierto", ascending=False)
+    a_reforzar = por_tema[por_tema["porcentaje_acierto"] < 80].sort_values("porcentaje_acierto", ascending=True)
+
+    por_video = df.groupby(["video", "tema", "subtema"], as_index=False).agg(
+        respuestas=("ok", "count"),
+        aciertos=("ok", "sum"),
+        errores=("ok", lambda s: (~s).sum()),
+        puntos_obtenidos=("obtenido", "sum"),
+        puntos_totales=("puntos", "sum"),
+    )
+    por_video["porcentaje_acierto"] = (por_video["aciertos"] / por_video["respuestas"] * 100).round(2)
+
+    videos_criticos = por_video[por_video["errores"] > 0].sort_values(
+        ["errores", "porcentaje_acierto"], ascending=[False, True]
+    )
+
+    return {
+        "fortalezas": fortalezas["tema"].tolist(),
+        "a_reforzar": a_reforzar["tema"].tolist(),
+        "videos_criticos": videos_criticos.to_dict(orient="records"),
+        "errores_decision": errores_decision,
+        "errores_sancion": errores_sancion,
+        "total_decision": total_decision,
+        "total_sancion": total_sancion,
+        "acierto_decision": acierto_decision,
+        "acierto_sancion": acierto_sancion,
+    }
+
+
+def conclusion_general_individual(participante, puntos, total, porc, niv, detalle):
+    nombre = participante.get("nombre", "El participante")
+    analisis = analisis_individual_arbitro(detalle)
+
+    if porc >= 90:
+        encabezado = f"{nombre} alcanzó un rendimiento excelente. Demuestra un criterio sólido en la lectura técnica y disciplinaria de las jugadas observadas."
+    elif porc >= 80:
+        encabezado = f"{nombre} alcanzó un rendimiento muy bueno. En líneas generales interpreta correctamente las situaciones, aunque presenta algunos puntos puntuales para revisar."
+    elif porc >= 70:
+        encabezado = f"{nombre} alcanzó un rendimiento bueno. El resultado es positivo, pero se recomienda profundizar en las jugadas donde existieron dudas para consolidar el criterio."
+    elif porc >= 60:
+        encabezado = f"{nombre} alcanzó un rendimiento regular. Se observan aspectos importantes para reforzar, especialmente en la identificación del tipo de infracción y/o la sanción disciplinaria."
+    else:
+        encabezado = f"{nombre} debe reforzar el análisis de las jugadas. Es recomendable volver a revisar los clips marcados y trabajar los criterios técnicos antes de una nueva evaluación."
+
+    lineas = [
+        encabezado,
+        "",
+        f"Resultado general: {niv} ({porc}%). Puntaje obtenido: {puntos}/{total}.",
+        "",
+        "Lectura técnica y disciplinaria:",
+        f"- Decisión técnica: {analisis['acierto_decision']}% de acierto ({analisis['errores_decision']} errores sobre {analisis['total_decision']} jugadas).",
+        f"- Sanción disciplinaria: {analisis['acierto_sancion']}% de acierto ({analisis['errores_sancion']} errores sobre {analisis['total_sancion']} jugadas).",
+    ]
+
+    if analisis["fortalezas"]:
+        lineas.append("")
+        lineas.append("Fortalezas detectadas:")
+        for tema in analisis["fortalezas"][:4]:
+            lineas.append(f"- Buen rendimiento en {tema}.")
+
+    if analisis["a_reforzar"]:
+        lineas.append("")
+        lineas.append("Aspectos generales a reforzar:")
+        for tema in analisis["a_reforzar"][:4]:
+            lineas.append(f"- Reforzar criterio en {tema}.")
+
+    if analisis["videos_criticos"]:
+        lineas.append("")
+        lineas.append("Videos sugeridos para volver a analizar:")
+        for r in analisis["videos_criticos"][:6]:
+            errores = int(r.get("errores", 0))
+            prioridad = "alta" if errores >= 2 else "media"
+            lineas.append(
+                f"- {r.get('video','')} ({r.get('tema','')}): revisar nuevamente. "
+                f"Prioridad {prioridad}. Rendimiento del video: "
+                f"{int(r.get('puntos_obtenidos', 0))}/{int(r.get('puntos_totales', 0))}."
+            )
+    else:
+        lineas.append("")
+        lineas.append("No se detectaron videos con errores. Se recomienda mantener el criterio aplicado.")
+
+    lineas.append("")
+    lineas.append("Esta conclusión es formativa: orienta qué revisar, sin mostrar las respuestas correctas del banco.")
+    return "\n".join(lineas)
+
+
 def cuerpo_mail_resultado(participante, puntos, total, porc, niv, detalle):
     nombre = participante.get("nombre", "Participante")
     res_tema = resumen_temas(detalle)
@@ -245,6 +368,9 @@ def cuerpo_mail_resultado(participante, puntos, total, porc, niv, detalle):
         f"Resultado: {niv}",
         f"Puntaje obtenido: {puntos} / {total}",
         f"Porcentaje: {porc}%",
+        "",
+        "Conclusión general:",
+        conclusion_general_individual(participante, puntos, total, porc, niv, detalle),
         "",
     ]
 
@@ -596,8 +722,40 @@ def admin():
             st.subheader("Rendimiento por tema / subtema")
             st.dataframe(por_tema, use_container_width=True)
 
-            st.subheader("Diagnóstico automático")
-            st.text_area("Diagnóstico", diagnostico_grupal(resumen, detalle), height=180)
+            st.subheader("Diagnóstico automático grupal")
+            st.text_area("Diagnóstico grupal", diagnostico_grupal(resumen, detalle), height=180)
+
+            st.subheader("Conclusión individual por árbitro")
+            opciones_ind = []
+            for idx, r in resumen.iterrows():
+                opciones_ind.append(f"{idx} - {r.get('nombre','')} - {r.get('email','')} - {r.get('fecha','')}")
+
+            seleccionado_ind = st.selectbox("Seleccionar árbitro / resultado", opciones_ind, key="sel_conclusion_individual")
+            idx_ind = int(seleccionado_ind.split(" - ")[0])
+            fila_ind = resumen.iloc[idx_ind]
+
+            det_ind = detalle[
+                (detalle["email"].astype(str) == str(fila_ind.get("email", ""))) &
+                (detalle["fecha"].astype(str) == str(fila_ind.get("fecha", "")))
+            ].copy()
+
+            participante_ind = {
+                "nombre": fila_ind.get("nombre", ""),
+                "email": fila_ind.get("email", ""),
+                "categoria": fila_ind.get("categoria", ""),
+                "institucion": fila_ind.get("institucion", ""),
+            }
+
+            conclusion_ind = conclusion_general_individual(
+                participante_ind,
+                fila_ind.get("puntaje_obtenido", 0),
+                fila_ind.get("puntaje_total", 0),
+                fila_ind.get("porcentaje", 0),
+                fila_ind.get("nivel", ""),
+                det_ind.to_dict(orient="records")
+            )
+
+            st.text_area("Conclusión individual", conclusion_ind, height=280)
 
             st.download_button(
                 "Descargar análisis grupal Excel",
@@ -771,6 +929,10 @@ def test():
         c2.metric("Porcentaje", f"{porc}%")
         c3.metric("Calificación", niv)
 
+        st.subheader("Conclusión general")
+        conclusion = conclusion_general_individual(participante, puntos, total, porc, niv, detalle)
+        st.info(conclusion)
+
         st.subheader("Resumen por tema")
         st.dataframe(resumen_temas(detalle), use_container_width=True)
 
@@ -799,7 +961,7 @@ def test():
 
 
 st.title("⚽ Video Test Árbitros")
-st.caption("Versión con resultado formativo individual, administración, análisis grupal y envío de correos.")
+st.caption("Versión con conclusión general individual, resultado formativo, administración, análisis grupal y envío de correos.")
 
 menu = st.sidebar.radio("Menú", ["Realizar test", "Administrador"])
 
